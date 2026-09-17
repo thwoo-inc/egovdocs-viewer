@@ -1,4 +1,4 @@
-import { escapeHtml, documentShell } from './html-util.js';
+import { escapeHtml, renderCell, documentShell } from './html-util.js';
 
 export function parseCsv(text) {
   const rows = [];
@@ -33,7 +33,7 @@ export function csvToHtml(text, fileName) {
   const [header = [], ...dataRows] = rows;
   const thead = `<tr>${header.map((c) => `<th>${escapeHtml(c)}</th>`).join('')}</tr>`;
   const tbody = dataRows
-    .map((r) => `<tr>${r.map((c) => `<td>${escapeHtml(c)}</td>`).join('')}</tr>`)
+    .map((r) => `<tr>${r.map((c) => `<td>${renderCell(c)}</td>`).join('')}</tr>`)
     .join('\n');
   const body = `<h1>CSVデータ表示</h1>
 <div class="info">

@@ -7,6 +7,17 @@ export function escapeHtml(s) {
     .replaceAll("'", '&#39;');
 }
 
+// e-GovのCSV/DTAセルにはHTML断片（<br/>やhttpリンクの<a>）が入ることがある。
+// 全体をエスケープした上で安全なパターンだけを復元するホワイトリスト方式で描画する。
+export function renderCell(text) {
+  return escapeHtml(text)
+    .replace(/&lt;br\s*\/?&gt;/gi, '<br>')
+    .replace(
+      /&lt;a\s+href=&quot;(https?:\/\/(?:(?!&quot;)[\s\S])*)&quot;\s*&gt;((?:(?!&lt;\/a&gt;)[\s\S])*)&lt;\/a&gt;/gi,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>',
+    );
+}
+
 export function documentShell(title, bodyHtml) {
   return `<!DOCTYPE html>
 <html lang="ja">

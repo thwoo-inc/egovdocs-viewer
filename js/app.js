@@ -48,7 +48,8 @@ function onFrameLoad() {
 function resetFrame() {
   const next = document.createElement('iframe');
   next.id = 'preview-frame';
-  next.setAttribute('sandbox', '');
+  // allow-popups*: 文書内のリンクを新しいタブで開けるようにする（スクリプト実行は引き続き禁止）
+  next.setAttribute('sandbox', 'allow-popups allow-popups-to-escape-sandbox');
   next.title = el.frame.title;
   next.hidden = true;
   next.addEventListener('load', onFrameLoad);

@@ -61,7 +61,7 @@ egovdocs-viewer/
 2. ファイル種別ごとに変換:
    - **XML**: 先頭の `<?xml-stylesheet type="text/xsl" href="..."?>` からXSLファイル名を抽出し、同じフォルダ内のXSLを `XSLTProcessor` で適用してHTML化。e-GovのXSLはすべてXSLT 1.0なのでブラウザ標準機能で処理可能
    - **DTA**: shift_jisでデコードし、1行目をヘッダー情報、2行目以降のカンマ区切り行（5フィールド以上）をデータ行として、現行Pythonスクリプトと同じ11列（No.＋コード1〜3、郵便番号1〜2、住所、会社名、氏名、電話番号、その他）のテーブルHTMLを生成
-   - **CSV**: まずUTF-8厳密デコード（`TextDecoder('utf-8', {fatal: true})`）を試し、失敗したらshift_jisにフォールバック。全行をテーブル表示（1行目はヘッダー行として強調）
+   - **CSV**: まずUTF-8厳密デコード（`TextDecoder('utf-8', {fatal: true})`）を試し、失敗したらshift_jisにフォールバック。全行をテーブル表示（1行目はヘッダー行として強調）。セル値に含まれるHTML断片は全体エスケープ後に安全なパターン（`<br/>`、`http(s)`の`<a>`リンク）のみ復元して描画する（DTAセルも同様）
    - **PDF等その他のファイル**: 変換せず、一覧からクリックでBlob URLによりダウンロード／ブラウザ表示
 3. 変換結果を画面に表示する
 
@@ -88,7 +88,8 @@ egovdocs-viewer/
 ## セキュリティ・秘匿性
 
 - `<meta http-equiv="Content-Security-Policy">` で `default-src 'self'; connect-src 'none'` 相当を宣言し、通信できないことを構造的に保証する
-- プレビューiframeは `sandbox` 属性（`allow-scripts` なし）でスクリプト実行を禁止。変換後HTMLは静的なので表示に支障なし
+- プレビューiframeは `sandbox` 属性（`allow-scripts` なし）でスクリプト実行を禁止。変換後HTMLは静的なので表示に支障なし。文書内のリンクを新しいタブで開けるよう `allow-popups allow-popups-to-escape-sandbox` のみ許可
+- Chrome 153のコンポジタ問題（sandbox付きsrcdoc iframeをhidden→再表示すると再描画されない）回避のため、プレビュー表示のたびにiframe要素を作り直す
 - データはメモリ上のみで保持。localStorage / IndexedDB / Cookie への保存はしない
 - DTA/CSVのセル値・ファイル名はHTMLエスケープして挿入する（XSS対策。現行Pythonスクリプトは未エスケープなので改善点）
 - XSLT変換結果はXSL由来のHTMLなのでそのまま表示するが、iframe sandboxで実行能力を持たない

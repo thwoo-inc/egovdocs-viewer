@@ -1,4 +1,4 @@
-import { escapeHtml, documentShell } from './html-util.js';
+import { escapeHtml, renderCell, documentShell } from './html-util.js';
 
 const COLUMNS = ['コード1', 'コード2', 'コード3', '郵便番号1', '郵便番号2', '住所', '会社名', '氏名', '電話番号', 'その他'];
 
@@ -19,7 +19,7 @@ export function dtaToHtml(text, fileName) {
   const bodyRows = rows.map((fields, idx) => {
     const cells = [`<td>${idx + 1}</td>`];
     for (let i = 0; i < COLUMNS.length; i++) {
-      cells.push(`<td>${escapeHtml(fields[i] ?? '')}</td>`);
+      cells.push(`<td>${renderCell(fields[i] ?? '')}</td>`);
     }
     return `<tr>${cells.join('')}</tr>`;
   }).join('\n');
