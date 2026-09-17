@@ -18,7 +18,7 @@ e-Govの通知文書送達でダウンロードしたZIP（社会保険関連の
 ## 技術構成
 
 - ビルドなしの素のHTML/CSS/JavaScript（ESモジュール）
-- 外部依存はZIP展開ライブラリ（fflate）のみ。`vendor/` にベンダーして同梱
+- 外部依存ゼロ。ZIP展開はブラウザ標準の `DecompressionStream('deflate-raw')` を使った自前の最小ZIPリーダーで行う（Chrome 103+ / Safari 16.4+ / Firefox 113+）。サードパーティコードが存在しないため、通信していないことを完全に監査できる
 - GitHub Pages: mainブランチのルートから配信
 
 ## ディレクトリ構成
@@ -29,15 +29,19 @@ egovdocs-viewer/
 ├── css/
 │   └── app.css
 ├── js/
-│   ├── app.js          # UI制御・状態管理・ファイル受け入れ
-│   ├── unzip.js        # ZIP展開（fflateラッパー、CP932ファイル名対応）
+│   ├── app.js          # UI制御・状態管理
+│   ├── intake.js       # ドロップ／ファイル選択の受け入れ・フォルダ走査・ZIP再帰展開
+│   ├── zip.js          # 自前ZIPリーダー（DecompressionStream、CP932ファイル名対応）
+│   ├── pipeline.js     # ファイル種別判定・変換ディスパッチ・XSL解決
 │   ├── convert-xml.js  # XML+XSL → XSLTProcessorで変換
 │   ├── convert-dta.js  # DTA → テーブルHTML（dta2html.pyのJS移植）
 │   ├── convert-csv.js  # CSV → テーブルHTML
+│   ├── html-util.js    # HTMLエスケープ・共通ドキュメント枠
 │   └── encoding.js     # 文字コード判定・デコード共通処理
-├── vendor/
-│   └── fflate.js       # ベンダーしたZIPライブラリ
+├── tests/              # node --test によるユニットテスト
 ├── docs/superpowers/specs/  # 設計ドキュメント
+├── package.json        # テスト実行用（"type": "module"、配信には無関係）
+├── .nojekyll
 └── README.md
 ```
 
@@ -52,7 +56,7 @@ egovdocs-viewer/
 ## データフロー
 
 1. ドロップされた入力を受け取り、仮想ファイルツリー（パス→バイト列のマップ）に正規化する
-   - ZIPはfflateでメモリ上に展開
+   - ZIPは自前リーダーでメモリ上に展開（セントラルディレクトリを解析し、deflate圧縮は `DecompressionStream('deflate-raw')` で伸長）。ZIPの中のZIPも再帰的に展開する
    - **ZIPエントリのファイル名はCP932の可能性が高い**。ZIPのUTF-8フラグ（general purpose bit 11）が立っていない場合は、ファイル名バイト列を `TextDecoder('shift_jis')` でデコードする（日本語ファイル名の文字化け対策）
 2. ファイル種別ごとに変換:
    - **XML**: 先頭の `<?xml-stylesheet type="text/xsl" href="..."?>` からXSLファイル名を抽出し、同じフォルダ内のXSLを `XSLTProcessor` で適用してHTML化。e-GovのXSLはすべてXSLT 1.0なのでブラウザ標準機能で処理可能
