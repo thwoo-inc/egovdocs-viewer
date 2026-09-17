@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src about: blob:; base-uri 'none'; form-action 'none'">
+<title>e-Gov通知文書ビューア</title>
+<link rel="stylesheet" href="css/app.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<header>
+  <h1>e-Gov通知文書ビューア</h1>
+  <p class="privacy-note">すべての処理はブラウザ内で完結します。ファイルが外部に送信されることはありません。</p>
+  <button id="clear-btn" hidden>クリア</button>
+</header>
+<main id="dropzone" class="empty">
+  <div id="drop-hint">
+    <p class="drop-main">e-GovからダウンロードしたZIPファイルをここにドロップ</p>
+    <p class="drop-sub">展開済みのフォルダや個別ファイル（XML/DTA/CSVなど）も受け付けます</p>
+    <label class="file-select">ファイルを選択<input type="file" id="file-input" multiple hidden></label>
+  </div>
+  <div id="viewer" hidden>
+    <nav id="file-tree"></nav>
+    <section id="preview">
+      <div id="preview-placeholder">左の一覧からファイルを選択してください</div>
+      <iframe id="preview-frame" sandbox="" hidden title="変換結果プレビュー"></iframe>
+    </section>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,46 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: 'Hiragino Sans', 'Yu Gothic', 'Meiryo', sans-serif;
+  display: flex; flex-direction: column;
+  background: #f5f5f5; color: #333;
+}
+header {
+  display: flex; align-items: baseline; gap: 16px;
+  padding: 10px 20px; background: #2e7d32; color: white;
+}
+header h1 { font-size: 18px; margin: 0; }
+.privacy-note { font-size: 12px; margin: 0; opacity: 0.9; flex: 1; }
+#clear-btn {
+  border: 1px solid rgba(255,255,255,0.7); background: transparent; color: white;
+  border-radius: 4px; padding: 4px 12px; cursor: pointer; font-size: 13px;
+}
+#clear-btn:hover { background: rgba(255,255,255,0.15); }
+main { flex: 1; min-height: 0; }
+main.empty { display: flex; align-items: center; justify-content: center; }
+main.dragging { outline: 3px dashed #2e7d32; outline-offset: -12px; }
+#drop-hint { text-align: center; color: #555; }
+.drop-main { font-size: 20px; }
+.drop-sub { font-size: 13px; color: #888; }
+.file-select {
+  display: inline-block; margin-top: 12px; padding: 8px 20px;
+  background: #2e7d32; color: white; border-radius: 4px; cursor: pointer; font-size: 14px;
+}
+#viewer { display: flex; height: 100%; }
+#file-tree {
+  width: 320px; min-width: 200px; overflow: auto; background: white;
+  border-right: 1px solid #ddd; padding: 8px; font-size: 13px;
+}
+#file-tree details { margin-left: 8px; }
+#file-tree summary { cursor: pointer; padding: 3px 4px; font-weight: bold; }
+#file-tree button {
+  display: block; width: 100%; text-align: left; border: none; background: none;
+  padding: 4px 6px 4px 24px; cursor: pointer; font-size: 13px; border-radius: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#file-tree button:hover { background: #e8f5e9; }
+#file-tree button.selected { background: #c8e6c9; }
+#preview { flex: 1; min-width: 0; display: flex; }
+#preview-frame { flex: 1; border: none; background: white; }
+#preview-placeholder { margin: auto; color: #888; }
+#preview-placeholder a { color: #2e7d32; }
