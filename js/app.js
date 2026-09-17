@@ -39,9 +39,24 @@ el.fileInput.addEventListener('change', async () => {
   addFiles(await filesFromInput(el.fileInput.files));
   el.fileInput.value = '';
 });
-el.frame.addEventListener('load', () => {
+function onFrameLoad() {
   debugLog('iframe load:', `srcdocLen=${(el.frame.getAttribute('srcdoc') ?? '').length}`, `hidden=${el.frame.hidden}`);
-});
+}
+
+// Chrome 153はsandbox付きsrcdoc iframeをhidden→再表示すると以降再描画しなくなるため、
+// 表示のたびにiframe要素ごと作り直す
+function resetFrame() {
+  const next = document.createElement('iframe');
+  next.id = 'preview-frame';
+  next.setAttribute('sandbox', '');
+  next.title = el.frame.title;
+  next.hidden = true;
+  next.addEventListener('load', onFrameLoad);
+  el.frame.replaceWith(next);
+  el.frame = next;
+  return next;
+}
+resetFrame();
 el.clearBtn.addEventListener('click', clearAll);
 
 async function addFiles(list) {
@@ -82,8 +97,7 @@ function clearAll() {
   state.files.clear();
   state.results.clear();
   el.tree.replaceChildren();
-  el.frame.removeAttribute('srcdoc');
-  el.frame.hidden = true;
+  resetFrame();
   el.placeholder.textContent = '左の一覧からファイルを選択してください';
   el.placeholder.hidden = false;
   el.viewer.hidden = true;
@@ -140,13 +154,14 @@ function selectFile(path) {
   const name = path.split('/').pop();
   debugLog('select:', path, `status=${result?.status}`, `htmlLen=${result?.html?.length ?? 0}`);
   if (result?.html) {
-    el.frame.srcdoc = result.html;
-    el.frame.hidden = false;
+    const frame = resetFrame();
+    frame.srcdoc = result.html;
+    frame.hidden = false;
     el.placeholder.hidden = true;
-    debugLog('srcdoc設定直後:', `attrLen=${(el.frame.getAttribute('srcdoc') ?? '').length}`);
+    debugLog('srcdoc設定直後:', `attrLen=${(frame.getAttribute('srcdoc') ?? '').length}`);
     return;
   }
-  el.frame.hidden = true;
+  resetFrame();
   el.placeholder.hidden = false;
   if (result?.status === 'other') {
     const url = URL.createObjectURL(new Blob([state.files.get(path)]));
