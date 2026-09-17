@@ -61,6 +61,13 @@ test('UTF-8フラグなしのファイル名はCP932としてデコードする'
   assert.deepEqual([...files.keys()], ['テスト.xml']);
 });
 
+test('UTF-8フラグなしでも有効なUTF-8名ならUTF-8としてデコードする（macOS zip対策）', async () => {
+  const nameBytes = new TextEncoder().encode('増減内訳書.xml');
+  const zip = buildZip([{ nameBytes, data: new Uint8Array([0x41]) }]);
+  const files = await unzip(zip);
+  assert.deepEqual([...files.keys()], ['増減内訳書.xml']);
+});
+
 test('deflate圧縮エントリを展開できる', async () => {
   const raw = new TextEncoder().encode('あいうえお'.repeat(100));
   const cs = new CompressionStream('deflate-raw');

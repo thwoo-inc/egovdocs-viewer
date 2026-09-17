@@ -1,4 +1,4 @@
-import { decodeShiftJis } from './encoding.js';
+import { decodeAuto } from './encoding.js';
 
 const EOCD_SIG = 0x06054b50;
 const CDFH_SIG = 0x02014b50;
@@ -28,9 +28,11 @@ function listEntries(bytes, view) {
     const commentLen = view.getUint16(offset + 32, true);
     const localOffset = view.getUint32(offset + 42, true);
     const nameBytes = bytes.subarray(offset + 46, offset + 46 + nameLen);
+    // UTF-8フラグなしでもUTF-8名のZIPが存在する（macOSのzip等）ため、
+    // フラグなしの場合はUTF-8として読めるか試し、だめならCP932とみなす
     const name = (flags & 0x800) !== 0
       ? new TextDecoder('utf-8').decode(nameBytes)
-      : decodeShiftJis(nameBytes);
+      : decodeAuto(nameBytes);
     entries.push({ name, method, compressedSize, localOffset, encrypted: (flags & 1) !== 0 });
     offset += 46 + nameLen + extraLen + commentLen;
   }

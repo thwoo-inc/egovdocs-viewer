@@ -57,7 +57,7 @@ egovdocs-viewer/
 
 1. ドロップされた入力を受け取り、仮想ファイルツリー（パス→バイト列のマップ）に正規化する
    - ZIPは自前リーダーでメモリ上に展開（セントラルディレクトリを解析し、deflate圧縮は `DecompressionStream('deflate-raw')` で伸長）。ZIPの中のZIPも再帰的に展開する
-   - **ZIPエントリのファイル名はCP932の可能性が高い**。ZIPのUTF-8フラグ（general purpose bit 11）が立っていない場合は、ファイル名バイト列を `TextDecoder('shift_jis')` でデコードする（日本語ファイル名の文字化け対策）
+   - **ZIPエントリのファイル名はCP932の可能性が高い**。ZIPのUTF-8フラグ（general purpose bit 11）が立っていない場合は、まずUTF-8厳密デコードを試し、失敗したらCP932とみなす（Windows製e-GovのCP932名と、フラグを立てないmacOS zipのUTF-8名の両方に対応）
 2. ファイル種別ごとに変換:
    - **XML**: 先頭の `<?xml-stylesheet type="text/xsl" href="..."?>` からXSLファイル名を抽出し、同じフォルダ内のXSLを `XSLTProcessor` で適用してHTML化。e-GovのXSLはすべてXSLT 1.0なのでブラウザ標準機能で処理可能
    - **DTA**: shift_jisでデコードし、1行目をヘッダー情報、2行目以降のカンマ区切り行（5フィールド以上）をデータ行として、現行Pythonスクリプトと同じ11列（No.＋コード1〜3、郵便番号1〜2、住所、会社名、氏名、電話番号、その他）のテーブルHTMLを生成
