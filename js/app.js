@@ -1,5 +1,8 @@
 import { collectDropped, filesFromInput, expandZips } from './intake.js';
 import { convertFile } from './pipeline.js';
+import { debugLog, initDebug } from './debug.js';
+
+initDebug();
 
 const state = {
   files: new Map(),   // path -> Uint8Array
@@ -28,16 +31,23 @@ el.dropzone.addEventListener('dragleave', () => el.dropzone.classList.remove('dr
 el.dropzone.addEventListener('drop', async (e) => {
   e.preventDefault();
   el.dropzone.classList.remove('dragging');
+  debugLog('drop:', `items=${e.dataTransfer.items.length}`, [...e.dataTransfer.items].map((i) => `${i.kind}/${i.type}`).join(','));
   addFiles(await collectDropped(e.dataTransfer));
 });
 el.fileInput.addEventListener('change', async () => {
+  debugLog('file-input:', `files=${el.fileInput.files.length}`);
   addFiles(await filesFromInput(el.fileInput.files));
   el.fileInput.value = '';
+});
+el.frame.addEventListener('load', () => {
+  debugLog('iframe load:', `srcdocLen=${(el.frame.getAttribute('srcdoc') ?? '').length}`, `hidden=${el.frame.hidden}`);
 });
 el.clearBtn.addEventListener('click', clearAll);
 
 async function addFiles(list) {
+  debugLog('addFiles入力:', list.map((i) => `${i.path}(${i.bytes.length}B)`).join(', '));
   const expanded = await expandZips(list);
+  debugLog('展開後:', expanded.map((i) => `${i.path}(${i.bytes.length}B${i.error ? ` error:${i.error}` : ''})`).join(', '));
   for (const item of expanded) {
     if (item.path.split('/').pop().startsWith('.')) continue; // .DS_Store等を除外
     state.files.set(item.path, item.bytes);
@@ -53,7 +63,9 @@ function convertAll() {
   for (const [path, bytes] of state.files) {
     const pre = state.results.get(path);
     if (pre && pre.status === 'error' && pre.kind === 'other') continue; // ZIP展開失敗を保持
-    state.results.set(path, convertFile(path, bytes, state.files));
+    const result = convertFile(path, bytes, state.files);
+    state.results.set(path, result);
+    debugLog('convert:', path, `status=${result.status}`, `htmlLen=${result.html?.length ?? 0}`, result.message ?? '');
   }
 }
 
@@ -126,10 +138,12 @@ function selectFile(path) {
   }
   const result = state.results.get(path);
   const name = path.split('/').pop();
+  debugLog('select:', path, `status=${result?.status}`, `htmlLen=${result?.html?.length ?? 0}`);
   if (result?.html) {
     el.frame.srcdoc = result.html;
     el.frame.hidden = false;
     el.placeholder.hidden = true;
+    debugLog('srcdoc設定直後:', `attrLen=${(el.frame.getAttribute('srcdoc') ?? '').length}`);
     return;
   }
   el.frame.hidden = true;
